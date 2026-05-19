@@ -86,21 +86,29 @@ app.post(
       console.log('❌ Email failed:', err.message);
     }
 
-    res.sendStatus(200);
+    return res.sendStatus(200);
   }
 );
 
+// Normal JSON middleware AFTER Stripe webhook
 app.use(express.json());
 
 app.get('/', (req, res) => {
   res.send('PricePeek server running 🟢');
 });
 
+app.get('/healthz', (req, res) => {
+  res.status(200).send('ok');
+});
+
 app.get('/validate', async (req, res) => {
   const { key } = req.query;
 
   if (!key) {
-    return res.status(400).json({ valid: false, error: 'Missing license key' });
+    return res.status(400).json({
+      valid: false,
+      error: 'Missing license key'
+    });
   }
 
   const { data, error } = await supabase
@@ -117,6 +125,8 @@ app.get('/validate', async (req, res) => {
   return res.json({ valid: !!data });
 });
 
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
